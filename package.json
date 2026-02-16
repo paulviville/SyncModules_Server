@@ -1,0 +1,16 @@
+{
+  "name": "syncmodules_server",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulviville/SyncModules_Server.git"
+  },
+  "license": "ISC",
+  "homepage": "https://github.com/paulviville/SyncModules_Server#readme",
+  "dependencies": {
+    "ws": "^8.19.0"
+  }
+}
