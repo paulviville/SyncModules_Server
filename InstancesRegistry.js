@@ -1,3 +1,6 @@
+import Instance from "./Instance.js";
+
+
 const INSTANCE_COMMANDS = {
 	INSTANCE_LIST: "INSTANCE_LIST",
 	INSTANCE_ADD: "INSTANCE_ADD",
@@ -6,39 +9,12 @@ const INSTANCE_COMMANDS = {
 	INSTANCE_LEAVE: "INSTANCE_LEAVE",
 }
 
-
-class Instance {
-	#UUID;
-	#usersUUID = new Set( );
-	// #broadcastFn;
-
-	constructor ( UUID ) {
-		this.#UUID = UUID;
-	}
-
-	addUser ( userUUID ) {
-		this.#usersUUID.add( userUUID );
-		this.log( );
-	}
-
-	removeUser ( userUUID ) {
-		this.#usersUUID.delete( userUUID );
-		this.log( );
-	}
-
-	get users ( ) {
-		return [ ...this.#usersUUID.keys( ) ];
-	}
-
-	log ( ) {
-		console.log( `instance ${ this.#UUID } - ${ [ ...this.#usersUUID.keys( ) ] }`)
-	}
-}
-
 export default class InstancesRegistry {
 	#instances = new Map( ); /// UUID -> Instance
-	#users = new Map( ); /// UUID -> Instance
+	#users = new Map( ); /// UUID -> InstanceUUID
 	#outputFn;
+	#instanceOutputFn;
+
 
 	#commandCallbacks = {
 		// [INSTANCE_COMMANDS.INSTANCE_LIST]: ( data ) => {
@@ -46,11 +22,11 @@ export default class InstancesRegistry {
 		// },
 		[INSTANCE_COMMANDS.INSTANCE_ADD]: ( data ) => {
 			this.addInstance( data.instanceUUID );
-			this.output( INSTANCE_COMMANDS.INSTANCE_LIST, this.instancesList );
+			this.output( INSTANCE_COMMANDS.INSTANCE_LIST, { instancesList: this.instancesList } );
 		},
 		[INSTANCE_COMMANDS.INSTANCE_REMOVE]: ( data ) => {
 			this.removeInstance( data.instanceUUID );
-			this.output( INSTANCE_COMMANDS.INSTANCE_LIST, this.instancesList );
+			this.output( INSTANCE_COMMANDS.INSTANCE_LIST, { instancesList: this.instancesList } );
 		},
 		[INSTANCE_COMMANDS.INSTANCE_JOIN]: ( data ) => {
 			this.joinInstance( data.instanceUUID, data.userUUID );
@@ -68,23 +44,30 @@ export default class InstancesRegistry {
 		this.#outputFn = outputFn;
 	}
 
+	setInstanceOutputFn ( instanceOutputFn ) {
+		this.#instanceOutputFn = instanceOutputFn;
+	}
+
 	addInstance ( instanceUUID ) {
         console.log( `InstancesRegistry - addInstance ${ instanceUUID }` );
 
-		this.#instances.set( instanceUUID, new Instance( instanceUUID ) );
+		const instance = new Instance( instanceUUID );
+		instance.setOutputFn( this.#instanceOutputFn );
+		this.#instances.set( instanceUUID, instance );
 	}
 
 	removeInstance ( instanceUUID ) {
         console.log( `InstancesRegistry - removeInstance ${ instanceUUID }` );
 		
-		this.#instances.delete( instanceUUID, new Instance( instanceUUID ) );
+		// const instance = this.#instances.get( instanceUUID );
+		this.#instances.delete( instanceUUID );
 	}
 
 	joinInstance ( instanceUUID, userUUID ) {
         console.log( `InstancesRegistry - joinInstance ${ instanceUUID } ${ userUUID }` );
 		
 		const instance = this.#instances.get( instanceUUID );
-		this.#users.set( userUUID, instance );
+		this.#users.set( userUUID, instanceUUID );
 		instance.addUser( userUUID );
 	}
 
@@ -102,6 +85,10 @@ export default class InstancesRegistry {
 	}
 
 	removeUser ( userUUID ) {
+		if( this.#users.get( userUUID ) ) {
+			this.leaveInstance( this.#users.get( userUUID ), userUUID );
+		}
+		
 		this.#users.delete( userUUID );
 	}
 
@@ -110,6 +97,15 @@ export default class InstancesRegistry {
 
 		const instance = this.#instances.get( instanceUUID );
 		return instance.users;
+	}
+
+	userInstance ( userUUID ) {
+        console.log( `InstancesRegistry - userInstance ${ userUUID }` );
+
+		const instanceUUID = this.#users.get( userUUID );
+		console.log(userUUID, instanceUUID)
+		const instance = this.#instances.get( instanceUUID );
+		return instance;
 	}
 
 	get instancesList ( ) {
@@ -131,7 +127,6 @@ export default class InstancesRegistry {
 	output ( command, data, usersUUID = [ ...this.#users.keys( ) ] ) {
         console.log( `InstancesRegistry - output` );
 		const payload = { command, data };
-		console.log(usersUUID)
 		this.#outputFn?.( usersUUID, payload );
 	}
 }

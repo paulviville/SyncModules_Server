@@ -1,5 +1,4 @@
 import { WebSocketServer } from "ws";
-import InstancesRegistry from "./InstancesRegistry.js";
 
 const CLOSING = {
 	NORMAL: 1000,
@@ -8,34 +7,19 @@ const CLOSING = {
 	INTERNAL_ERROR: 1011,
 }
 
-const SCOPES = {
-	SYSTEM: "SYSTEM",
-	INSTANCE: "INSTANCE",
-	MODULE: "MODULE",
-};
-
-const INSTANCE_COMMANDS = {
-	INSTANCE_LIST: "INSTANCE_LIST",
-	INSTANCE_ADD: "INSTANCE_ADD",
-	INSTANCE_REMOVE: "INSTANCE_REMOVE",
-	INSTANCE_JOIN: "INSTANCE_JOIN",
-	INSTANCE_LEAVE: "INSTANCE_LEAVE",
-}
-
 export default class ServerNetwork {
-	#UUID = "00000000-0000-0000-0000-000000000000";
 	#server;
 
 	#clients = new Map( ); /// UUID -> socket
-	#instancesRegistry = new InstancesRegistry( );
-	#onMessageCallbacks = new Map( ); /// Scope -> fn
-	#systemCallbacks; // = new Map( ); 
+	#systemCallbacks;
 
-	constructor ( port ) {
-		console.log(`ServerNetwork - constructor (${ port })`);
+	constructor ( ) {
+		console.log(`ServerNetwork - constructor`);
 	}
 
 	start ( port ) {
+		console.log(`ServerNetwork - start ${ port }`);
+
 		this.#server = new WebSocketServer({ port: port });
 
 		this.#server.on('connection', ( socket ) => {
@@ -74,18 +58,7 @@ export default class ServerNetwork {
 	#handleMessage ( clientUUID, message ) {
         console.log(`ServerNetwork - #handleMessage ${ clientUUID }`);
 
-		const scope = this.#getScope( message );
-		const messageData = JSON.parse( message );
-		console.log( messageData );
-
-		this.#onMessageCallbacks.get( scope )?.( message );
-	}
-
-	/// placeholder for buffers
-	#getScope ( message ) {
-		const messageData = JSON.parse( message );
-		const { scope } = messageData;
-		return scope; 
+		this.#systemCallbacks?.onMessage( message );
 	}
 
 	#handleNewClient ( clientUUID ) {
@@ -93,7 +66,6 @@ export default class ServerNetwork {
 
 		this.#systemCallbacks?.onNewClient( clientUUID );
 	}
-
 
 	#handleClose( clientUUID ) {
         console.log(`ServerNetwork - #handleClose ${ clientUUID }`);
@@ -126,48 +98,23 @@ export default class ServerNetwork {
 			this.#send( clientUUID, message );
 		}
 	}
-
-	broadcastPayload ( scope, clientUUIDs, payload ) {
-        console.log( `ServerNetwork - broadcastPayload ${ scope } ${ clientUUIDs }` );
-		
-		const message = this.#createMessage( scope, payload );
-		this.#broadcast( clientUUIDs, message );
-	}
-
-	#createMessage ( scope, payload ) {
-		const messageData = {
-			scope,
-			senderUUID: this.#UUID,
-			payload,
-		};
-
-		return JSON.stringify( messageData );
-	}
-
-	setOnMessageCallback ( scope, callback ) {
-		this.#onMessageCallbacks.set( scope, callback );
+	
+	get broadcast ( ) {
+		return this.#broadcast.bind( this );
 	}
 
 	setSystemCallbacks ( callbacks ) {
 		this.#systemCallbacks = callbacks;
 	}
-
-	/// TEMPORARILY HERE
-	// broadcastInstanceList ( clientUUIDs ) {
-	// 	const instanceListMessage = this.#createMessage( 
-	// 		SCOPES.SYSTEM,
-	// 		{
-	// 			command: INSTANCE_COMMANDS.INSTANCE_LIST,
-	// 			data: {
-	// 				instancesList: this.#instancesRegistry.instancesList,
-	// 			},
-	// 		}
-	// 	);
-		
-	// 	this.#broadcast( clientUUIDs, instanceListMessage );
-	// }
-
-	/// 
 }
 
-/// MESSAGE : { SENDERUUID, SCOPE, PAYLOAD }
+/// MESSAGE : { HEADER, PAYLOAD }
+/// HEADER : { SENDERUUID, SCOPE }
+/// PAYLOAD : { MODULEUUID, COMMAND, DATA }
+/// COMMAND: string || uint
+/// DATA: COMMAND dependent
+
+/// Bufferized
+/// HEADER : [ UUID: 16 bytes, SCOPE: 4 bytes ]
+/// PAYLOAD : [ COMMAND: 4 bytes, DATA: (4 bytes + size(DATA)) ]
+/// DATA: [ SIZE, ... ]
