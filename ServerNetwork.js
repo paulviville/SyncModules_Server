@@ -1,4 +1,5 @@
 import { WebSocketServer } from "ws";
+import HTTPSServer from "./HTTPSServer.js";
 
 const CLOSING = {
 	NORMAL: 1000,
@@ -9,6 +10,7 @@ const CLOSING = {
 
 export default class ServerNetwork {
 	#server;
+	#https;
 
 	#clients = new Map( ); /// UUID -> socket
 	#systemCallbacks;
@@ -17,15 +19,22 @@ export default class ServerNetwork {
 		console.log(`ServerNetwork - constructor`);
 	}
 
-	start ( port ) {
-		console.log(`ServerNetwork - start ${ port }`);
+	start ( config ) {
+		console.log(`ServerNetwork - start ${ config.port }`);
 
-		this.#server = new WebSocketServer({ port: port });
+		if ( config.https ) {
+			console.log("here", config)
+			this.#https = HTTPSServer( );
+			this.#server = new WebSocketServer({ server: this.#https });
+		}
+		else {
+			this.#server = new WebSocketServer({ port: config.port });
+		}
 
 		this.#server.on('connection', ( socket ) => {
 			this.#handleConnection( socket );
+			console.log(this.#server)
 		});
-
 		process.on('SIGINT', ( ) => { this.#handleShutdown( ); })
 		process.on('SIGTERM', ( ) => { this.#handleShutdown( ); })
 	}
@@ -81,6 +90,7 @@ export default class ServerNetwork {
 			client.close( CLOSING.SHUTDOWN, "Server shutting down" );
 		} );
 
+		this.#https.close( );
 		this.#server.close( );
 	}
 
