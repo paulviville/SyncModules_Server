@@ -21,4 +21,5 @@ export default function ( ) {
 	httpsServer.listen(port, () => {
 		console.log(`HTTPS server running on port ${port}`);
 	});
+	return httpsServer;
 }
