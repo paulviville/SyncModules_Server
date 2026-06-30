@@ -23,7 +23,6 @@ export default class ServerNetwork {
 		console.log(`ServerNetwork - start ${ config.port }`);
 
 		if ( config.https ) {
-			console.log("here", config)
 			this.#https = HTTPSServer( );
 			this.#server = new WebSocketServer({ server: this.#https });
 		}
