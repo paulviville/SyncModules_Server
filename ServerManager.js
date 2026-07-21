@@ -66,8 +66,8 @@ export default class ServerManager {
 		///
 	}
 
-	start ( port ) {
-		this.#serverNetwork.start( port );
+	start ( port, httpsServer ) {
+		this.#serverNetwork.start( port, httpsServer );
 	}
 
 	#createMessage ( scope, payload, senderUUID = this.#UUID ) {
