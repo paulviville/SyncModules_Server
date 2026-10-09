@@ -32,7 +32,7 @@ export default class ServerNetwork {
 
 		this.#server.on('connection', ( socket ) => {
 			this.#handleConnection( socket );
-			console.log(this.#server)
+			// console.log(this.#server)
 		});
 		process.on('SIGINT', ( ) => { this.#handleShutdown( ); })
 		process.on('SIGTERM', ( ) => { this.#handleShutdown( ); })
@@ -64,7 +64,7 @@ export default class ServerNetwork {
 	}
 
 	#handleMessage ( clientUUID, message ) {
-        console.log(`ServerNetwork - #handleMessage ${ clientUUID }`);
+        // console.log(`ServerNetwork - #handleMessage ${ clientUUID }`);
 
 		this.#systemCallbacks?.onMessage( message );
 	}
@@ -83,7 +83,7 @@ export default class ServerNetwork {
 	}
 
 	#handleShutdown ( ) {
-        console.log(`ServerNetwork - #handleShutdown`);
+        // console.log(`ServerNetwork - #handleShutdown`);
 
 		this.#server.clients.forEach( ( client ) => {
 			client.close( CLOSING.SHUTDOWN, "Server shutting down" );
@@ -94,14 +94,14 @@ export default class ServerNetwork {
 	}
 
 	#send ( clientUUID, message ) {
-        console.log( `ServerNetwork - #send ${ clientUUID }` );
+        // console.log( `ServerNetwork - #send ${ clientUUID }` );
 
 		const client = this.#clients.get( clientUUID );
 		client.send( message );
 	}
 
 	#broadcast ( clientUUIDs, message ) {
-        console.log( `ServerNetwork - #broadcast ${ clientUUIDs }` );
+        // console.log( `ServerNetwork - #broadcast ${ clientUUIDs }` );
 
 		for ( const clientUUID of clientUUIDs ) {
 			this.#send( clientUUID, message );

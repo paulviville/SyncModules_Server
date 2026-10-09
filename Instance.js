@@ -10,7 +10,7 @@ export default class Instance {
 		this.#UUID = UUID;
 		
 		this.#moduleRegistry = new ModulesRegistry( ( payload ) => {
-			console.log("module registry output")
+			// console.log("module registry output")
 			this.output( this.users, payload );
 		} );
 	}
@@ -44,23 +44,23 @@ export default class Instance {
 	}
 
 	input ( payload ) {
-        console.log( `Instance - input` );
+        // console.log( `Instance - input` );
 		const { moduleUUID, command, data } = payload;
 		
-		console.log( moduleUUID, command );
+		// console.log( moduleUUID, command );
 
 		const module = this.#moduleRegistry.getModule( moduleUUID );
-		module.input( payload );
+		module?.input( payload );
 	}
 
 	output ( userUUIDs, payload ) {
-        console.log( `Instance - output` );
+        // console.log( `Instance - output` );
 		
 		this.#outputFn?.( userUUIDs, payload );
 	}
 
 	outputState ( userUUID ) {
-        console.log( `Instance - outputState` );
+        // console.log( `Instance - outputState` );
 		
 		const registryState = this.#moduleRegistry.outputState( );
 
@@ -72,6 +72,15 @@ export default class Instance {
 
 			const moduleState = module.outputState( );
 			this.output( [ userUUID ], moduleState );
+		}
+	}
+
+	clearModules ( ) {
+		for ( const [ moduleUUID, module ] of this.#moduleRegistry.modules ) {
+			if ( module.type == this.#moduleRegistry.type ) 
+				continue;
+
+			this.#moduleRegistry.removeModule( moduleUUID, true );
 		}
 	}
 }

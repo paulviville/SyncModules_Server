@@ -6,7 +6,7 @@ const args = process.argv.slice( 2 );
 
 const config = { };
 for ( const arg of args ) {
-	console.log( arg )
+	// console.log( arg )
 	const argName = arg.split( "=" )[ 0 ];
 	const argValue = arg.split( "=" )[ 1 ];
 	

@@ -7,6 +7,7 @@ const INSTANCE_COMMANDS = {
 	INSTANCE_REMOVE: "INSTANCE_REMOVE",
 	INSTANCE_JOIN: "INSTANCE_JOIN",
 	INSTANCE_LEAVE: "INSTANCE_LEAVE",
+	INSTANCE_CLEAR: "INSTANCE_CLEAR",
 }
 
 export default class InstancesRegistry {
@@ -33,6 +34,9 @@ export default class InstancesRegistry {
 		},
 		[INSTANCE_COMMANDS.INSTANCE_LEAVE]: ( data ) => {
 			this.leaveInstance( data.instanceUUID, data.userUUID );
+		},
+		[INSTANCE_COMMANDS.INSTANCE_CLEAR]: ( data ) => {
+			this.clearInstance( data.instanceUUID );
 		},
 	}
 
@@ -79,6 +83,13 @@ export default class InstancesRegistry {
 		instance.removeUser( userUUID );
 	}
 
+	clearInstance ( instanceUUID ) {
+        console.log( `InstancesRegistry - clearInstance ${ instanceUUID }` );
+
+		const instance = this.#instances.get( instanceUUID );
+		instance.clearModules( );
+	}
+
 	addUser ( userUUID ) {
 		this.#users.set( userUUID, undefined );
 		this.output( INSTANCE_COMMANDS.INSTANCE_LIST, this.instancesList, [ userUUID ] );
@@ -100,10 +111,10 @@ export default class InstancesRegistry {
 	}
 
 	userInstance ( userUUID ) {
-        console.log( `InstancesRegistry - userInstance ${ userUUID }` );
+        // console.log( `InstancesRegistry - userInstance ${ userUUID }` );
 
 		const instanceUUID = this.#users.get( userUUID );
-		console.log(userUUID, instanceUUID)
+		// console.log(userUUID, instanceUUID)
 		const instance = this.#instances.get( instanceUUID );
 		return instance;
 	}

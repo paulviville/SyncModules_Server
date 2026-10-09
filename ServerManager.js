@@ -37,7 +37,7 @@ export default class ServerManager {
 				this.#instancesRegistry.addUser( userUUID );
 			}, 
 			onClose: ( userUUID ) => {
-				console.log("on close")
+				// console.log("on close")
 				this.#users.delete( userUUID );
 				this.#instancesRegistry.removeUser( userUUID );
 			},
@@ -86,7 +86,7 @@ export default class ServerManager {
 		const instance = this.#instancesRegistry.userInstance( senderUUID );
 		// console.log( `target instance ${ instance?.log() }`)
 		if ( instance !== undefined ) {
-			console.log(`routing to instance ${ instance.UUID }`);
+			// console.log(`routing to instance ${ instance.UUID }`);
 			
 			instance.input( payload );
 			
