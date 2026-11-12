@@ -6,9 +6,14 @@ import https from "https";
 
 
 export default function ( ) {
-	const sslDir = '/etc/ssl/continuum';
-	const keyPath = join(sslDir, 'gscop-continuum.g-scop.grenoble-inp.fr.key');
-	const certPath = join(sslDir, 'Cert_continuum_g-scop_grenoble-inp_fr.pem');
+	const sslDir = '/etc/ssl/icos';
+	const keyPath = join(sslDir, 'icos.univ-reims.fr.key');
+	const certPath = join(sslDir, 'Cert_bundle.pem');
+
+	//const sslDir = '/etc/ssl/continuum';
+	//const keyPath = join(sslDir, 'gscop-continuum.g-scop.grenoble-inp.fr.key');
+	//const certPath = join(sslDir, 'Cert_continuum_g-scop_grenoble-inp_fr.pem');
+
 
 	const options = {
 		key: fs.readFileSync(keyPath),
